@@ -2,6 +2,15 @@ body {
   margin: 0;
 }
 
+#download{
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  padding: 20px;
+  z-index: 30;
+  background-color: rgba(255,255,255,0.8);
+}
+
 .map {
   position: relative;
   overflow: hidden;
@@ -55,7 +64,6 @@ a.zoom:last-child {
 
 .tile path {
   fill: none;
-  stroke: #fff;
   stroke-linejoin: round;
   stroke-linecap: round;
 }

@@ -8,13 +8,20 @@
 <script src="https://cdn.rawgit.com/devTristan/pbf/master/dist/pbf.min.js"></script>
 <script src="https://rawgit.com/devTristan/vector-tile-js/master/dist/vectortile.min.js"></script>
 <script src='//s3.amazonaws.com/assets-staging.mapzen.com/ui/components/bug/bug.min.js'></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="SVGmaker.js"></script>
+
 <script type='text/javascript'>
   window.bugTitle = 'Map using d3 and vector PBF';
-  
+
+  SVGmaker.createDownloadButton();
   var layers = ['water', 'landuse', 'roads', 'buildings'];
+  var dataKinds = ['water', 'ocean', 'water-layer', 'river', 'stream', 'canal', 'riverbank',
+'major_road', 'minor_road', 'highway', 'buildings-layer', 'park', 'nature_reserve', 'wood', 'protected-land', 'rail'];
+
   window.renderTiles = function(d) {
     var svg = d3.select(this);
-    this._xhr = d3.xhr("https://vector.mapzen.com/osm/all/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt?api_key=vector-tiles-LM25tq4").responseType('arraybuffer').get(function(error, json) {
+    this._xhr = d3.xhr("https://vector.mapzen.com/osm/all/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt?api_key=vector-tiles-ZxELuEQ").responseType('arraybuffer').get(function(error, json) {
       
       var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
       var extents = 4096;
@@ -44,11 +51,47 @@
           svg.selectAll("path")
             .data(layer_data.features.sort(function(a, b) { return a.properties.sort_key ? a.properties.sort_key - b.properties.sort_key : 0 }))
           .enter().append("path")
+            .attr('stroke-width',function(d){
+              return getCss(d, 'stroke-width', layer);
+              // var i,attr;
+              // for(i = 0; i< dataKinds.length; i++){
+              //   if(d.properties.kind == dataKinds[i]) attr = $(".tile ." + dataKinds[i]).css('stroke-width');
+              // }
+              // if(attr =="undefined") attr = $(".tile ." + layer + "-layer ").css('stroke-width');
+            })
+            .attr('stroke',function(d){
+              return getCss(d, 'stroke', layer);
+
+// var i,attr;
+              // for(i = 0; i< dataKinds.length; i++){
+              //   if(d.properties.kind == dataKinds[i]) attr = $(".tile ." + dataKinds[i]).css('stroke');
+              // }
+            })
+            .attr('fill',function(d){
+              return getCss(d, 'fill', layer);
+              // var i,attr;
+              // for(i = 0; i< dataKinds.length; i++){
+              //   if(d.properties.kind == dataKinds[i]) attr = $(".tile ." + dataKinds[i]).css('fill');
+              // }
+            })
             .attr("class", function(d) { var kind = d.properties.kind || ''; return layer + '-layer ' + kind; })
             .attr("d", tilePath );
         }
       });
+      SVGmaker.updateDownloadLink();
     });
   };
+
+function getCss(d, attrName, layer){
+  var i,attr;
+  for(i = 0; i< dataKinds.length; i++){
+    if(d.properties.kind == dataKinds[i]) attr = $(".tile ." + dataKinds[i]).css(attrName);
+  }
+  
+  if(attr === undefined){
+    attr = $(".tile ." + layer + "-layer ").css(attrName);
+  } 
+  return attr;
+}
 </script>
 <script src="scripts.js"></script>
