@@ -8,6 +8,8 @@ Array.min = function( array ){
 var SVGmaker = (function(){
 
   var downloadA;
+  var dataKinds = ['water', 'ocean', 'water-layer', 'river', 'stream', 'canal', 'riverbank',
+'major_road', 'minor_road', 'highway', 'buildings-layer', 'park', 'nature_reserve', 'wood', 'protected-land', 'rail'];
 
   var getSVG = function(){
 
@@ -39,8 +41,22 @@ var SVGmaker = (function(){
     var gs = [];
 
     $("svg").each(function(){
-      var thisTop = parseInt($(this).css('top').replace('px',''));
-      var thisLeft = parseInt($(this).css('left').replace('px',''));
+      var $this = $(this);
+
+
+      $this.find('path').each(function(){
+        var $thisPath = $(this);
+        var className = $thisPath.attr('class');
+        className = className.split(' ')[1];
+        $thisPath.attr('stroke-width', $thisPath.css('stroke-width'))
+                .attr('stroke', $thisPath.css('stroke'))
+                .attr('fill', $thisPath.css('fill'));
+      });
+
+
+
+      var thisTop = parseInt($this.css('top').replace('px',''));
+      var thisLeft = parseInt($this.css('left').replace('px',''));
       thisTop -= minTop;
       thisLeft -= minLeft;
       var gStart = "<g transform = \"translate(" + thisLeft + " " + thisTop+ ")\">";
@@ -60,6 +76,7 @@ var SVGmaker = (function(){
   };
 
   var updateDownloadLink = function(){
+    console.log("working?");
     var svg = getSVG();
     var blob = new Blob([svg], {type: 'text/xml'});
     var url = URL.createObjectURL(blob);
@@ -71,11 +88,17 @@ var SVGmaker = (function(){
     divEL.setAttribute('id','download');
     downloadA = document.createElement('a');
     downloadA.download = 'map.svg';
+
+    var updateButton = document.createElement('button');
+    updateButton.innerHTML = "Get Map";
+    updateButton.addEventListener('click',updateDownloadLink,true);
     //a.href = url;
-    downloadA.textContent = "Download SVG"
+    downloadA.textContent = "Download SVG "
     divEL.appendChild(downloadA);
+    divEL.appendChild(updateButton);
     document.body.appendChild(divEL);
   };
+
 
   return{
     createDownloadButton : createDownloadButton,
@@ -83,3 +106,5 @@ var SVGmaker = (function(){
   }
 
 })();
+
+
