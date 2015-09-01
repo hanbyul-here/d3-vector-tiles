@@ -15,7 +15,7 @@ var SVGmaker = (function(){
 
     var lefts = [];
     var tops = [];
-    $("svg").each(function(){
+    $("#map_container svg").each(function(){
       tops.push(parseInt($(this).css('top').replace('px','')));
       lefts.push(parseInt($(this).css('left').replace('px','')));
     });
@@ -36,11 +36,12 @@ var SVGmaker = (function(){
     var svgViewWidth = maxLeft - minLeft;
     var svgViewHeight = maxTop - minTop;
     var viewSVG = "<svg width = \"" + svgViewWidth + "px\" height = \"" + svgViewHeight +"px\">";
+    var backgroundRectangle = "<rect width = \"" + svgViewWidth + "px\" height = \"" + svgViewHeight + "px\" style=\"stroke: none; fill: #d9d9d9;\" />";
     var gWidth = svgViewWidth/horTileNum;
     var gHeight = svgViewHeight/verTileNum;
     var gs = [];
 
-    $("svg").each(function(){
+    $("#map_container svg").each(function(){
       var $this = $(this);
 
 
@@ -67,6 +68,8 @@ var SVGmaker = (function(){
     });
 
     var finalSVG = viewSVG;
+    finalSVG += backgroundRectangle;
+    finalSVG += $("#pattern-svg").html();
     gs.forEach(function(g){
       finalSVG += g;
     });

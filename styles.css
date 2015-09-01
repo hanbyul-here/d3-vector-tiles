@@ -2,6 +2,15 @@ body {
   margin: 0;
 }
 
+#map_container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #d9d9d9;
+}
+
 #download{
   position: fixed;
   top: 0px;
@@ -68,12 +77,12 @@ a.zoom:last-child {
   stroke-linecap: round;
 }
 
-.tile .water, .tile .ocean { fill: #9DD9D2; stroke: #9DD9D2; }
-.tile .water-layer, .tile .river, .tile .stream, .tile .canal { stroke: #9DD9D2; stroke-width: 1.5px;}
+.tile .water, .tile .ocean { fill: #9DD9D2; stroke: #83dbee;}
+.tile .water-layer, .tile .river, .tile .stream, .tile .canal { stroke: #83dbee; stroke-width: 1px;}
 .tile .riverbank { fill: #9DD9D2; }
-.tile .major_road { stroke: #fb7b7a; stroke-width: 1px; }
-.tile .minor_road { stroke: #999; stroke-width: 0.5px; }
-.tile .highway { stroke: #FA4A48; stroke-width: 1.5px; }
+.tile .major_road { stroke: #fff; stroke-width: 1px; }
+.tile .minor_road { stroke: #fff; stroke-width: 0.5px; }
+.tile .highway { stroke:  #fb7e6f; stroke-width: 1.5px; }
 .tile .buildings-layer { stroke: #987284; stroke-width: 0.15px; }
 .tile .park, .tile .nature_reserve, .tile .wood, .tile .protected-land {fill: #88D18A;}
 .tile .rail { stroke: #503D3F; stroke-width: 0.5px; }
