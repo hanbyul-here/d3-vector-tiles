@@ -18,7 +18,7 @@ var tilePath = d3.geo.path()
 var zoom = d3.behavior.zoom()
     .scale(projection.scale() * 2 * Math.PI)
     .scaleExtent([1 << 12, 1 << 25]) // 12 to 25 is roughly z4-z5 to z17
-    //sf - 37.7524/-122.4407
+    //sf 37.7524/-122.4407
     .translate(projection([-122.4407, 37.7524]).map(function(x) { return -x; }))
     .on("zoom", zoomed);
 
