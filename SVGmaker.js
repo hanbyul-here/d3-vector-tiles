@@ -15,7 +15,8 @@ var SVGmaker = (function(){
 
     var lefts = [];
     var tops = [];
-    $("#map_container svg").each(function(){
+    $("body svg").each(function(){
+      console.log($(this).css('top'));
       tops.push(parseInt($(this).css('top').replace('px','')));
       lefts.push(parseInt($(this).css('left').replace('px','')));
     });
@@ -27,6 +28,7 @@ var SVGmaker = (function(){
     var verTileNum = 0;
     var horTileNum = 0;
     var i;
+
 
     for(i = 0; i < lefts.length; i++){
       if(lefts[i] == minLeft) verTileNum++;
@@ -41,7 +43,7 @@ var SVGmaker = (function(){
     var gHeight = svgViewHeight/verTileNum;
     var gs = [];
 
-    $("#map_container svg").each(function(){
+    $("body svg").each(function(){
       var $this = $(this);
 
 
@@ -79,7 +81,6 @@ var SVGmaker = (function(){
   };
 
   var updateDownloadLink = function(){
-    console.log("working?");
     var svg = getSVG();
     var blob = new Blob([svg], {type: 'text/xml'});
     var url = URL.createObjectURL(blob);
