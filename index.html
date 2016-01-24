@@ -3,56 +3,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="styles.css" />
 <body>
-<!-- svg for pattern -->
-<svg id ="pattern-svg" height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1"> 
-  <defs> 
-    <pattern id="circles-4" patternUnits="userSpaceOnUse" width="10" height="10"> 
-      <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMCcgaGVpZ2h0PScxMCc+CiAgPHJlY3Qgd2lkdGg9JzEwJyBoZWlnaHQ9JzEwJyBmaWxsPSd3aGl0ZScgLz4KICA8Y2lyY2xlIGN4PScyLjUnIGN5PScyLjUnIHI9JzIuNScgZmlsbD0nYmxhY2snLz4KPC9zdmc+" x="0" y="0" width="10" height="10"> 
-      </image> 
-    </pattern> 
-    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-      <rect width = "20" height = "20"  style="fill:#e3f0fd;" />
-      <line  x1="0" y1="0" x2 = "20" y2 = "0"  style="stroke: #d1e6fc; stroke-width: 1;"/>
-      <line x1="0" y1="0" x2="0" y2 = "20"  style="stroke: #d1e6fc; stroke-width: 1;"/>
-    </pattern>
-    <pattern id="dot-pattern"
-             x="0" y="0" width="3" height="3"
-             patternUnits="userSpaceOnUse" >
-        <circle cx="3" cy="3" r="2" style="stroke: none; fill: #2aa59f" />
-    </pattern>
-  </defs> 
-</svg> 
-
-<div id = "map_container"></div>
-
 <script src="d3.v3.min.js"></script>
 <script src="d3.geo.tile.v0.min.js"></script>
 <script src="https://cdn.rawgit.com/devTristan/pbf/master/dist/pbf.min.js"></script>
 <script src="https://rawgit.com/devTristan/vector-tile-js/master/dist/vectortile.min.js"></script>
 <script src='//s3.amazonaws.com/assets-staging.mapzen.com/ui/components/bug/bug.min.js'></script>
-<script src='https://code.jquery.com/jquery-1.11.3.min.js'></script>
-<script src="SVGmaker.js"></script>
 <script type='text/javascript'>
   window.bugTitle = 'Map using d3 and vector PBF';
-  SVGmaker.createDownloadButton();
+
   var layers = ['water', 'landuse', 'roads', 'buildings'];
   window.renderTiles = function(d) {
     var svg = d3.select(this);
-    this._xhr = d3.xhr("https://vector.mapzen.com/osm/all/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt?api_key=vector-tiles-LM25tq4").responseType('arraybuffer').get(function(error, json) {
+    var zoom = d[2];
+    this._xhr = d3.xhr("https://vector.mapzen.com/osm/all/" + zoom + "/" + d[0] + "/" + d[1] + ".mvt?api_key=vector-tiles-LM25tq4").responseType('arraybuffer').get(function(error, json) {
 
       var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
       var extents = 4096;
 
       var data = {};
-
       for (var key in tile.layers) {
         data[key] = tile.layers[key].toGeoJSON();
       }
 
       var tile_projection = d3.geo.transform({
         point: function(x, y) {
-          x = x/extents*256;
-          y = y/extents*256;
+          // Sometimes PBF points in a mixed-geometry layer are corrupted
+          if(!isNaN(y)){
+            x = x/extents*256;
+            y = y/extents*256;
+          } else {
+            y = x[0][1]/extents * 256;
+            x = x[0][0]/extents * 256;
+          }
 
           this.stream.point(x, y);
         }
@@ -61,27 +43,35 @@
       var tilePath = d3.geo.path()
       .projection(tile_projection)
 
+      // build up a single concatenated array of all tile features from all tile layers
+      var features = [];
       layers.forEach(function(layer){
-        var layer_data = data[layer];
-        
-        if (layer_data) {
-          svg.selectAll("path")
-            .data(layer_data.features.sort(function(a, b) { return a.properties.sort_key ? a.properties.sort_key - b.properties.sort_key : 0 }))
-          .enter().append("path")
-            .style("fill", function(d) { 
-              if(layer === "water") {
-                if(d.properties.boundary=='yes') return "'none"
-                else return "url(#grid)";
-              }
-            })
-            .attr("class", function(d) {
-              var kind = d.properties.kind || '';
-              if(d.properties.boundary=='yes') kind += '_boundary';
-              if(d.properties.label_placement=='yes') kind += '_label_placement';
-              return layer + '-layer ' + kind; })
-            .attr("d", tilePath );
+        if(data[layer])
+        {
+            for(var i in data[layer].features)
+            {
+                // Don't include any label placement points
+                if(data[layer].features[i].properties.label_placement == 'yes') { continue }
+
+                // Don't show large buildings at z13 or below.
+                if(zoom <= 13 && layer == 'buildings') { continue }
+
+                // Don't show small buildings at z14 or below.
+                if(zoom <= 14 && layer == 'buildings' && data[layer].features[i].properties.area < 2000) { continue }
+
+                data[layer].features[i].layer_name = layer;
+                features.push(data[layer].features[i]);
+            }
         }
       });
+
+      // put all the features into SVG paths
+      svg.selectAll("path")
+        .data(features.sort(function(a, b) { return a.properties.sort_key ? a.properties.sort_key - b.properties.sort_key : 0 }))
+      .enter().append("path")
+        .attr("class", function(d) { var kind = d.properties.kind || ''; if(d.properties.boundary=='yes'){kind += '_boundary';} return d.layer_name + '-layer ' + kind; })
+        .attr("d", tilePath);
+
     });
   };
 </script>

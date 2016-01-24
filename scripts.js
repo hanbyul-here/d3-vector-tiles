@@ -22,7 +22,7 @@ var zoom = d3.behavior.zoom()
     .translate(projection([-122.4407, 37.7524]).map(function(x) { return -x; }))
     .on("zoom", zoomed);
 
-var map = d3.select("#map_container").append("div")
+var map = d3.select("body").append("div")
     .attr("class", "map")
     .style("width", width + "px")
     .style("height", height + "px")
